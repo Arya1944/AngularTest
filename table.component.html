@@ -21,7 +21,7 @@
         [attr.id]="id"
       >
 
-        <ng-container *ngFor="let column of columns">
+        <ng-container *ngFor="let column of columns; let isFirst = first">
           <ng-container matColumnDef="{{ column.name }}">
             
             <th
@@ -29,9 +29,16 @@
               *matHeaderCellDef
               mat-sort-header
               [disabled]="column.isSortable !== true"
-              [ngStyle]="{ width: column.headerWidth }"
+              [ngStyle]="{
+                width: column.headerWidth || column.width || null,
+                minWidth: column.width || null,
+                maxWidth: column.width || null
+              }"
               [attr.id]="id + '-th-' + column.name"
-              [class.sticky-header]="internalScrolling"
+              [ngClass]="{
+                'sticky-header': enableFirstRowFreeze || internalScrolling,
+                'first-col': enableFirstColumnFreeze && isFirst
+              }"
             >
 
               <ng-container *ngIf="column.type === columnType.checkbox; else defaultHeader">
@@ -58,8 +65,17 @@
               mat-cell
               *matCellDef="let element; let i = index"
               [ngSwitch]="column.type"
-              [ngStyle]="{ textAlign: column.textAlign }"
+              [ngStyle]="{
+                textAlign: column.textAlign || null,
+                width: column.width || null,
+                minWidth: column.width || null,
+                maxWidth: column.width || null
+              }"
               [attr.id]="id + '-th-' + column.name + '-' + i"
+              [ngClass]="{
+                'first-col': enableFirstColumnFreeze && isFirst,
+                'break-lines': column.breakLines || !!column.width
+              }"
             >
               <!-- do other column types here if needed -->
               <ng-container *ngSwitchCase="columnType.checkbox">

@@ -152,22 +152,29 @@ export class CommitteeDetailsDeclarationOfInterestComponent
       {
         name: 'otherEmploymentOrPaymentForServices',
         displayName: 'Other Employment',
-        isSortable: true
+        isSortable: true,
+        width: '240px',
+        breakLines: true,
       },
       {
         name: 'otherPositionsHeldVoluntary',
         displayName: 'Other Positions Held - Voluntary',
-        isSortable: true
+        isSortable: true,
+        width: '240px',
+        breakLines: true,
       },
       {
         name: 'otherInterests',
         displayName: 'Other Interests',
-        isSortable: true
+        isSortable: true,
+        width: '200px',
+        breakLines: true,
       },
       {
         name: 'roleType',
         displayName: 'Role Type',
-        isSortable: true
+        isSortable: true,
+        width: '150px',
       },
     ];
 
