@@ -1,0 +1,189 @@
+<div>
+  <div *ngIf="loading" class="flex items-center justify-center h-60">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="50"
+    ></mat-progress-spinner>
+  </div>
+
+  <div [hidden]="loading">
+    <div
+      [style.max-height]="containerMaxHeight"
+      class="overflow-auto table-wrapper scrollbar"
+      [class.enable-horizontal]="internalHorizontalScrolling"
+    >
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        (matSortChange)="onSortChange($event)"
+        class="bg-white"
+        [attr.id]="id"
+      >
+
+        <ng-container *ngFor="let column of columns">
+          <ng-container matColumnDef="{{ column.name }}">
+            
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              mat-sort-header
+              [disabled]="column.isSortable !== true"
+              [ngStyle]="{ width: column.headerWidth }"
+              [attr.id]="id + '-th-' + column.name"
+              [class.sticky-header]="internalScrolling"
+            >
+
+              <ng-container *ngIf="column.type === columnType.checkbox; else defaultHeader">
+                <mat-checkbox
+                  [checked]="allSelected"
+                  (change)="onSelectAll($event.checked)"
+                  aria-label="Select All Rows"
+                >
+                </mat-checkbox>
+              </ng-container>
+              <!-- Default Header Content -->
+              <ng-template #defaultHeader>
+                <span class="body-large-regular">
+                  {{ column.displayName }}
+                </span>
+                <span *ngIf="column.isSortable" class="ml-2">
+                  <fa-icon [icon]="faSort" class="none"></fa-icon>
+                  <fa-icon [icon]="faCaretUp" class="asc"></fa-icon>
+                  <fa-icon [icon]="faCaretDown" class="desc"></fa-icon>
+                </span>
+              </ng-template>
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let element; let i = index"
+              [ngSwitch]="column.type"
+              [ngStyle]="{ textAlign: column.textAlign }"
+              [attr.id]="id + '-th-' + column.name + '-' + i"
+            >
+              <!-- do other column types here if needed -->
+              <ng-container *ngSwitchCase="columnType.checkbox">
+                <mat-checkbox
+                  *ngIf="element.isEligible"
+                  [(ngModel)]="element.isSelected"
+                  (change)="onCheckboxChange(element)"
+                  aria-label="Select Row {{ i }}"
+                ></mat-checkbox>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="columnType.routerLink">
+                <a
+                  *ngIf="column.getLink"
+                  [routerLink]="column.getLink(element)"
+                  (click)="handleClick(element, column)"
+                  class="text-brand-darkBlue hover:underline"
+                >
+                  {{ getDisplayValue(element, column) }}
+                </a>
+                <ng-container *ngIf="!column.getLink">
+                  {{ getDisplayValue(element, column) }}
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="columnType.link">
+                <a
+                  *ngIf="column.getLink"
+                  [href]="column.getLink(element)"
+                  class="text-brand-darkBlue hover:underline"
+                  [target]="column.linkTarget || '_self'"
+                >
+                  {{ getDisplayValue(element, column) }}
+                </a>
+                <ng-container *ngIf="!column.getLink">
+                  {{ getDisplayValue(element, column) }}
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="columnType.arrayString">
+                <ng-container *ngFor="let str of element[column.name]">
+                  {{ str }} <br />
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="columnType.component">
+                <ng-container
+                  *ngIf="column.component && column.getComponentInput"
+                >
+                  <ng-container
+                    *ngComponentOutlet="
+                      column.component;
+                      inputs: column.getComponentInput(element)
+                    "
+                  ></ng-container>
+                </ng-container>
+
+                <ng-container
+                  *ngIf="!column.component || !column.getComponentInput"
+                >
+                  {{ getDisplayValue(element, column) }}
+                </ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchDefault>
+                <ng-container *ngIf="column.name == 'phase'; else elseBlock">
+                    <app-status-badge
+                      [colourScheme]="statusBadgeColourSchemeEnum.Green"
+                      name="phase"
+                    >
+                       {{ getDisplayValue(element, column) }}
+                    </app-status-badge>
+                </ng-container>
+
+                <ng-template #elseBlock>
+                  <div class="py-2 body-default-regular text-grey-800">
+                    {{ getDisplayValue(element, column) }}
+                  </div>
+                </ng-template>
+              </ng-container>
+            </td>
+          </ng-container>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayColumns " class="sticky-header" ></tr>
+        <tr mat-row *matRowDef="let row; columns: displayColumns" ></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td
+            class="mat-cell"
+            [attr.colspan]="displayColumns.length"
+            class="py-3 text-center"
+          >
+            {{
+              dataSource.filter == ""
+                ? "No records found."
+                : "No records found matching the filter"
+            }}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <ng-container *ngIf="pagination">
+      <mat-paginator
+        #paginator
+        [length]="dataSource.data.length"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        class="hidden"
+      ></mat-paginator>
+      <div
+        class="flex items-center justify-end gap-3 mt-6 text-grey-700"
+        name="paginator"
+      >
+        <div *ngIf="dataSource && dataSource.filteredData.length > 0">
+          <app-pagination
+            [totalRecords]="dataSource.filteredData.length"
+            [recordsPerPage]="paginator.pageSize"
+            [currentPage]="paginator.pageIndex + 1"
+            (pageChange)="onPageChange($event)"
+          ></app-pagination>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
