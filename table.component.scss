@@ -80,8 +80,9 @@
 
 
     // overrides the default arrow icon of the sort header
-    .mat-sort-header-arrow {
-        opacity: 0!important;
+    .mat-sort-header-arrow,
+    .mat-sort-header-indicator {
+        display: none !important;
     }
 
     .mat-sort-header[aria-sort="none"] {
