@@ -29,9 +29,11 @@
               *matHeaderCellDef
               mat-sort-header
               [disabled]="column.isSortable !== true"
-              [ngStyle]="{ width: column.headerWidth }"
+              [ngStyle]="getColumnStyles(column)"
               [attr.id]="id + '-th-' + column.name"
               [class.sticky-header]="internalScrolling"
+              [class.first-col]="enableFirstColumnFreeze && isFirstVisibleColumn(column)"
+              [class.wrap-text]="shouldWrapColumn(column)"
             >
 
               <ng-container *ngIf="column.type === columnType.checkbox; else defaultHeader">
@@ -58,8 +60,11 @@
               mat-cell
               *matCellDef="let element; let i = index"
               [ngSwitch]="column.type"
-              [ngStyle]="{ textAlign: column.textAlign }"
+              [style.text-align]="column.textAlign"
+              [ngStyle]="getColumnStyles(column)"
               [attr.id]="id + '-th-' + column.name + '-' + i"
+              [class.first-col]="enableFirstColumnFreeze && isFirstVisibleColumn(column)"
+              [class.wrap-text]="shouldWrapColumn(column)"
             >
               <!-- do other column types here if needed -->
               <ng-container *ngSwitchCase="columnType.checkbox">

@@ -1,18 +1,15 @@
 <div class="py-6">
-     <div
-    class="table-container enableFirstRowFreeze enableFirstColumnFreeze"
-    [ngClass]="{ 'enableFirstRowFreeze': true , 'enableFirstColumnFreeze': true }"
-  >
+  <div class="table-container">
     <app-table
-        [loading]="loading"
-        [data]="tableData"
-        [columns]="tableColumns"
-        [pageSize]="50"
-        [internalHorizontalScrolling]="true"
-        id="table-declarationOfInterest">
+      [loading]="loading"
+      [data]="tableData"
+      [columns]="tableColumns"
+      [pageSize]="50"
+      [internalHorizontalScrolling]="true"
+      [enableFirstRowFreeze]="true"
+      [enableFirstColumnFreeze]="true"
+      id="table-declarationOfInterest"
+    >
     </app-table>
-       </div>
+  </div>
 </div>
-
-
-

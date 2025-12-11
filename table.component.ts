@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostBinding, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -69,7 +69,18 @@ export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
   }
 
   displayColumns: string[] = [];
+  firstVisibleColumnName: string | null = null;
   columnType = TableColumnType;
+
+  @HostBinding('class.enableFirstRowFreeze')
+  get hostHasFirstRowFreeze(): boolean {
+    return this.enableFirstRowFreeze;
+  }
+
+  @HostBinding('class.enableFirstColumnFreeze')
+  get hostHasFirstColumnFreeze(): boolean {
+    return this.enableFirstColumnFreeze;
+  }
 
   get containerMaxHeight(): string {
 
@@ -127,7 +138,31 @@ export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
       this.displayColumns = columns
         .filter(c => c.isHidden !== true)
         .map(c => c.name as string);
+      this.firstVisibleColumnName = this.displayColumns.length
+        ? this.displayColumns[0]
+        : null;
     }
+  }
+
+  getColumnStyles(column: ITableColumn<TData>): { [key: string]: string } {
+    const width = column.width || column.headerWidth;
+    if (!width) {
+      return {};
+    }
+
+    return {
+      width,
+      minWidth: width,
+      maxWidth: width,
+    };
+  }
+
+  shouldWrapColumn(column: ITableColumn<TData>): boolean {
+    return column.breakLines === true || !!column.width;
+  }
+
+  isFirstVisibleColumn(column: ITableColumn<TData>): boolean {
+    return !!this.firstVisibleColumnName && this.firstVisibleColumnName === column.name;
   }
 
   getDisplayValue(data: TData, column: ITableColumn<TData>): any {

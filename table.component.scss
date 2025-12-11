@@ -30,6 +30,17 @@
   @apply border-b-gray-100 border-b-4;
 }
 
+.mat-mdc-header-cell.wrap-text,
+.mat-mdc-cell.wrap-text {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.mat-mdc-cell.wrap-text .py-2 {
+  white-space: inherit;
+}
+
 /* Sticky header */
 :host-context(.enableFirstRowFreeze)
   .mat-mdc-header-cell {
