@@ -21,6 +21,7 @@ import { DateFormatPipe } from '../pipes/date-format.pipe';
 
 export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
   public statusBadgeColourSchemeEnum = StatusBadgeColourScheme;
+  public readonly breakLinesCharLimit = 50;
   faAngleLeft = faAngleLeft;
   faAngleRight = faAngleRight;
   faSort = faSort;
@@ -142,6 +143,53 @@ export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
     }
 
     return value;
+  }
+
+  private toDisplayString(value: any): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return String(value);
+  }
+
+  getCellText(data: TData, column: ITableColumn<TData>): string {
+    const text = this.toDisplayString(this.getDisplayValue(data, column));
+
+    if (column.breakLines === true && text.length > this.breakLinesCharLimit) {
+      return text.slice(0, this.breakLinesCharLimit) + '…';
+    }
+
+    return text;
+  }
+
+  getCellHoverText(data: TData, column: ITableColumn<TData>): string | null {
+    const text = this.toDisplayString(this.getDisplayValue(data, column));
+
+    if (column.breakLines === true && text.length > this.breakLinesCharLimit) {
+      return text;
+    }
+
+    return null;
+  }
+
+  getArrayItemText(value: any, column: ITableColumn<TData>): string {
+    const text = this.toDisplayString(value);
+
+    if (column.breakLines === true && text.length > this.breakLinesCharLimit) {
+      return text.slice(0, this.breakLinesCharLimit) + '…';
+    }
+
+    return text;
+  }
+
+  getArrayItemHoverText(value: any, column: ITableColumn<TData>): string | null {
+    const text = this.toDisplayString(value);
+
+    if (column.breakLines === true && text.length > this.breakLinesCharLimit) {
+      return text;
+    }
+
+    return null;
   }
 
   applyFilter(filters: ITableFilter[]) {

@@ -77,11 +77,14 @@
                   [routerLink]="column.getLink(element)"
                   (click)="handleClick(element, column)"
                   class="text-brand-darkBlue hover:underline"
+                  [attr.title]="getCellHoverText(element, column)"
                 >
-                  {{ getDisplayValue(element, column) }}
+                  {{ getCellText(element, column) }}
                 </a>
                 <ng-container *ngIf="!column.getLink">
-                  {{ getDisplayValue(element, column) }}
+                  <span [attr.title]="getCellHoverText(element, column)">
+                    {{ getCellText(element, column) }}
+                  </span>
                 </ng-container>
               </ng-container>
 
@@ -91,17 +94,23 @@
                   [href]="column.getLink(element)"
                   class="text-brand-darkBlue hover:underline"
                   [target]="column.linkTarget || '_self'"
+                  [attr.title]="getCellHoverText(element, column)"
                 >
-                  {{ getDisplayValue(element, column) }}
+                  {{ getCellText(element, column) }}
                 </a>
                 <ng-container *ngIf="!column.getLink">
-                  {{ getDisplayValue(element, column) }}
+                  <span [attr.title]="getCellHoverText(element, column)">
+                    {{ getCellText(element, column) }}
+                  </span>
                 </ng-container>
               </ng-container>
 
               <ng-container *ngSwitchCase="columnType.arrayString">
                 <ng-container *ngFor="let str of element[column.name]">
-                  {{ str }} <br />
+                  <span [attr.title]="getArrayItemHoverText(str, column)">
+                    {{ getArrayItemText(str, column) }}
+                  </span>
+                  <br />
                 </ng-container>
               </ng-container>
 
@@ -129,14 +138,18 @@
                     <app-status-badge
                       [colourScheme]="statusBadgeColourSchemeEnum.Green"
                       name="phase"
+                      [attr.title]="getCellHoverText(element, column)"
                     >
-                       {{ getDisplayValue(element, column) }}
+                       {{ getCellText(element, column) }}
                     </app-status-badge>
                 </ng-container>
 
                 <ng-template #elseBlock>
-                  <div class="py-2 body-default-regular text-grey-800">
-                    {{ getDisplayValue(element, column) }}
+                  <div
+                    class="py-2 body-default-regular text-grey-800"
+                    [attr.title]="getCellHoverText(element, column)"
+                  >
+                    {{ getCellText(element, column) }}
                   </div>
                 </ng-template>
               </ng-container>
