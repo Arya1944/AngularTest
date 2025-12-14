@@ -72,30 +72,48 @@
               </ng-container>
 
               <ng-container *ngSwitchCase="columnType.routerLink">
-                <a
-                  *ngIf="column.getLink"
-                  [routerLink]="column.getLink(element)"
-                  (click)="handleClick(element, column)"
-                  class="text-brand-darkBlue hover:underline"
-                >
-                  {{ getDisplayValue(element, column) }}
-                </a>
-                <ng-container *ngIf="!column.getLink">
-                  {{ getDisplayValue(element, column) }}
+                <ng-container *ngIf="getCellFullText(element, column) as full">
+                  <a
+                    *ngIf="column.getLink"
+                    [routerLink]="column.getLink(element)"
+                    (click)="handleClick(element, column)"
+                    class="text-brand-darkBlue hover:underline"
+                    [class.break-lines]="column.breakLines"
+                    [attr.title]="shouldShowFullTextOnHover(full, column) ? full : null"
+                  >
+                    {{ column.breakLines ? truncateText(full) : full }}
+                  </a>
+                  <ng-container *ngIf="!column.getLink">
+                    <span
+                      [class.break-lines]="column.breakLines"
+                      [attr.title]="shouldShowFullTextOnHover(full, column) ? full : null"
+                    >
+                      {{ column.breakLines ? truncateText(full) : full }}
+                    </span>
+                  </ng-container>
                 </ng-container>
               </ng-container>
 
               <ng-container *ngSwitchCase="columnType.link">
-                <a
-                  *ngIf="column.getLink"
-                  [href]="column.getLink(element)"
-                  class="text-brand-darkBlue hover:underline"
-                  [target]="column.linkTarget || '_self'"
-                >
-                  {{ getDisplayValue(element, column) }}
-                </a>
-                <ng-container *ngIf="!column.getLink">
-                  {{ getDisplayValue(element, column) }}
+                <ng-container *ngIf="getCellFullText(element, column) as full">
+                  <a
+                    *ngIf="column.getLink"
+                    [href]="column.getLink(element)"
+                    class="text-brand-darkBlue hover:underline"
+                    [target]="column.linkTarget || '_self'"
+                    [class.break-lines]="column.breakLines"
+                    [attr.title]="shouldShowFullTextOnHover(full, column) ? full : null"
+                  >
+                    {{ column.breakLines ? truncateText(full) : full }}
+                  </a>
+                  <ng-container *ngIf="!column.getLink">
+                    <span
+                      [class.break-lines]="column.breakLines"
+                      [attr.title]="shouldShowFullTextOnHover(full, column) ? full : null"
+                    >
+                      {{ column.breakLines ? truncateText(full) : full }}
+                    </span>
+                  </ng-container>
                 </ng-container>
               </ng-container>
 
@@ -135,9 +153,15 @@
                 </ng-container>
 
                 <ng-template #elseBlock>
-                  <div class="py-2 body-default-regular text-grey-800">
-                    {{ getDisplayValue(element, column) }}
-                  </div>
+                  <ng-container *ngIf="getCellFullText(element, column) as full">
+                    <div
+                      class="py-2 body-default-regular text-grey-800"
+                      [class.break-lines]="column.breakLines"
+                      [attr.title]="shouldShowFullTextOnHover(full, column) ? full : null"
+                    >
+                      {{ column.breakLines ? truncateText(full) : full }}
+                    </div>
+                  </ng-container>
                 </ng-template>
               </ng-container>
             </td>

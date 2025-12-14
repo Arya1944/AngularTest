@@ -23,6 +23,12 @@
   max-width: 1200px;
 }
 
+.break-lines {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 
 /* Borders (Tailwind) */
 .mat-mdc-header-cell,

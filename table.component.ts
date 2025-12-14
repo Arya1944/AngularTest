@@ -21,6 +21,7 @@ import { DateFormatPipe } from '../pipes/date-format.pipe';
 
 export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
   public statusBadgeColourSchemeEnum = StatusBadgeColourScheme;
+  readonly breakLinesTruncateLength = 50;
   faAngleLeft = faAngleLeft;
   faAngleRight = faAngleRight;
   faSort = faSort;
@@ -142,6 +143,31 @@ export class TableComponent<TData> implements OnInit, OnChanges, AfterViewInit {
     }
 
     return value;
+  }
+
+  getCellFullText(data: TData, column: ITableColumn<TData>): string {
+    const value = this.getDisplayValue(data, column);
+    if (value === null || value === undefined) {
+      return '';
+    }
+    if (Array.isArray(value)) {
+      return value.map(v => (v === null || v === undefined) ? '' : String(v)).join(', ');
+    }
+    return String(value);
+  }
+
+  truncateText(value: string, limit: number = this.breakLinesTruncateLength): string {
+    if (!value) {
+      return '';
+    }
+    if (value.length <= limit) {
+      return value;
+    }
+    return value.slice(0, limit).trimEnd() + '…';
+  }
+
+  shouldShowFullTextOnHover(value: string, column: ITableColumn<TData>): boolean {
+    return column.breakLines === true && value.length > this.breakLinesTruncateLength;
   }
 
   applyFilter(filters: ITableFilter[]) {
