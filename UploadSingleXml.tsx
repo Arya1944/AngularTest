@@ -25,7 +25,7 @@ const fileTypePDF = ADD_DOCUMENT_CONSTANT.FILE_TYPE_PDF;
 const fileTypeXML = ADD_DOCUMENT_CONSTANT.FILE_TYPE_XML;
 const defaultXMLDocumentType = ADD_DOCUMENT_CONSTANT.DEFAULT_XML_DOCUMENT_TYPE;
 
-const UploadFiles: React.FC<UploadFilesProps> = ({
+const UploadSingleXML: React.FC<UploadFilesProps> = ({
   id = "fileupload",
   disable = false,
   schemaError = "",
@@ -45,47 +45,22 @@ const UploadFiles: React.FC<UploadFilesProps> = ({
 
   let inputValue = "";
 
-  const isValidateXMLFile =()=>{
-    let isvalid= true;
- if (
-      event.target.files &&
-      event.target.files.length > 1
-    ) {
+  const isValidateXMLFile = (event: any) => {
+    let isValid = true;
+    if (event.target.files && event.target.files.length > 1) {
       setValidationErrorMessage("You can only upload one file.");
-      isvalid = false;
+      isValid = false;
     }
-    if (
-      event.target.files &&
-      event.target.files.length > 0
-    ) {
+    if (event.target.files && event.target.files.length > 0) {
       const file = event.target.files[0];
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
       fileExtension !== "xml" &&
         setValidationErrorMessage(
           "Invalid file type. Please upload an XML file."
         );
-      isvalid =false
+      isValid = false;
     }
-        
-    }
-    return isvalid; 
-  }
-  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-
-    if (isValidateXMLFile())
-    {
-    setValidationErrorMessage("");
-    let uploadFiles = event.target.files;
-    if (uploadFiles && uploadFiles.length > 0) {
-        const fileList = getFileList(uploadFiles);
-        setFiles(fileList);
-      }
-        const fileDetail = getFileDetail(uploadFile.name, uploadFile.size);
-        fileDetails.push(fileDetail);
-      setDisplayFilesDetail(fileDetails);
-      setSchemaErrorMessage("");
-    }
+    return isValid;
   };
 
   const getFileDetail = (fileName: string, fileSize: number) => {
@@ -127,47 +102,79 @@ const UploadFiles: React.FC<UploadFilesProps> = ({
     return fileDetail;
   };
 
-
-  const isInvalidFile = (index: number) => {
-    if (files) {
-      const file = files[index];
-      const largerThanMaxSize =
-        file.size / fileSizeBase / fileSizeBase > maxFileSize;
-      const invalidFileType = !allowTypes.includes(file.type);
-      return largerThanMaxSize || invalidFileType;
-    }
-    return false;
-  };
-
-  const removeFile = (index: number) => {
-    if (files) {
-      const latestFiles = latestFileList(files, index);
-      setFiles(latestFiles);
-      for (const latestFile of latestFiles) {
-        const fileDetail = getFileDetail(latestFile.name, latestFile.size);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isValidateXMLFile(event)) {
+      setValidationErrorMessage("");
+      let uploadFile = event.target.files;
+      if (uploadFile && uploadFile.length > 0) {
+        setFiles(uploadFile);
+        const fileDetail = getFileDetail(
+          uploadFile[0].name,
+          uploadFile[0].size
+        );
         fileDetails.push(fileDetail);
+        setDisplayFilesDetail(fileDetails);
+        setSchemaErrorMessage("");
       }
-      validationUploadFiles();
-      setDisplayFilesDetail(fileDetails);
     }
-  };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    let dropFiles = e.dataTransfer.files;
-    if (dropFiles && dropFiles.length > 0) {
-        const fileList = getFileList(dropFiles);
-        setFiles(fileList);
-
-      const fileDetail = getFileDetail(dropFile.name, dropFile.size);
-        fileDetails.push(fileDetail);
+    const isInvalidFile = (index: number) => {
+      if (files) {
+        const file = files[index];
+        const largerThanMaxSize =
+          file.size / fileSizeBase / fileSizeBase > maxFileSize;
+        const invalidFileType = !allowTypes.includes(file.type);
+        return largerThanMaxSize || invalidFileType;
       }
-      setDisplayFilesDetail(fileDetails);
-    }
+      return false;
+    };
+
+    // Helper to remove a file at a specific index from a FileList
+    const latestFileList = (
+      fileList: FileList,
+      removeIndex: number
+    ): FileList => {
+      const filesArray = Array.from(fileList).filter(
+        (_, idx) => idx !== removeIndex
+      );
+      // Create a new FileList using DataTransfer API
+      const dataTransfer = new DataTransfer();
+      filesArray.forEach((file) => dataTransfer.items.add(file));
+      return dataTransfer.files;
+    };
+
+    const removeFile = (index: number) => {
+      if (files) {
+        const latestFiles = latestFileList(files, index);
+        setFiles(latestFiles);
+        for (const latestFile of latestFiles) {
+          const fileDetail = getFileDetail(latestFile.name, latestFile.size);
+          fileDetails.push(fileDetail);
+        }
+        validationUploadFiles();
+        setDisplayFilesDetail(fileDetails);
+      }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      if (isValidateXMLFile(e)) {
+        let dropFiles = e.dataTransfer.files;
+        if (dropFiles && dropFiles.length > 0) {
+          setFiles(dropFiles);
+          const fileDetail = getFileDetail(
+            dropFiles[0].name,
+            dropFiles[0].size
+          );
+          fileDetails.push(fileDetail);
+        }
+        setDisplayFilesDetail(fileDetails);
+      }
+    };
   };
 
   useEffect(() => {
@@ -203,7 +210,7 @@ const UploadFiles: React.FC<UploadFilesProps> = ({
     if (hasOverSizeFile) {
       setValidationErrorMessage(fileSizeOverLimitaionError);
     } else {
-      if (&& XMLFile.length === 1) {
+      if (XMLFile.length === 1) {
         setValidationErrorMessage("");
         onValidateFile(false);
         onFilesReady(filesArray);
