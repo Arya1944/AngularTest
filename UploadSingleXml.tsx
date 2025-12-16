@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
+import UploadFiles from "./UploadFiles";
 
 type UploadSingleXmlProps = {
   /** Called when user clicks Upload. Return a promise to show loading state. */
@@ -9,92 +10,49 @@ type UploadSingleXmlProps = {
 
   /** Optional UI text */
   label?: string;
+
+  /** Optional passthrough props to UploadFiles */
+  id?: string;
+  disable?: boolean;
+  schemaError?: any;
+  size?: "S" | "M" | "L";
 };
 
 export function UploadSingleXml({
   onUpload,
   maxBytes = 10 * 1024 * 1024,
   label = "Upload XML",
+  id = "fileupload-xml",
+  disable = false,
+  schemaError = "",
+  size = "S",
 }: UploadSingleXmlProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string>("");
-  const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
-  const accept = useMemo(() => ".xml,application/xml,text/xml", []);
-
-  const validate = useCallback(
-    (f: File): string => {
-      const name = f.name || "";
-      const lower = name.toLowerCase();
-
-      if (!lower.endsWith(".xml")) return "Only .xml files are allowed.";
-      if (f.size > maxBytes)
-        return `File is too large. Max ${(maxBytes / (1024 * 1024)).toFixed(0)}MB.`;
-
-      return "";
-    },
-    [maxBytes]
-  );
-
-  const pickSingleXml = useCallback(
-    (files: FileList | File[] | null | undefined) => {
-      setError("");
-
-      const list = files ? Array.from(files as any) : [];
-      if (list.length === 0) return;
-
-      if (list.length > 1) {
-        setFile(null);
-        setError("Please upload a single XML file (only one file allowed). ");
-        return;
-      }
-
-      const f = list[0] as File;
-      const err = validate(f);
-      if (err) {
-        setFile(null);
-        setError(err);
-        return;
-      }
-
-      setFile(f);
-    },
-    [validate]
-  );
-
-  const onInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      pickSingleXml(e.target.files);
-      // allow selecting the same file again
-      e.target.value = "";
-    },
-    [pickSingleXml]
-  );
-
-  const onDrop = useCallback(
-    (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault();
-      setIsDragging(false);
-      pickSingleXml(e.dataTransfer.files);
-    },
-    [pickSingleXml]
-  );
-
-  const openFileDialog = useCallback(() => {
-    inputRef.current?.click();
-  }, []);
 
   const clear = useCallback(() => {
     setFile(null);
     setError("");
   }, []);
 
+  const handleFilesReady = useCallback((files: any) => {
+    // UploadFiles sends an array in xml-only mode: onFilesReady([xmlFile])
+    const first = Array.isArray(files) ? files[0] : files;
+    setFile(first instanceof File ? first : null);
+    setError("");
+  }, []);
+
   const upload = useCallback(async () => {
     if (!file) {
       setError("Select one XML file first.");
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      setError(
+        `File is too large. Max ${(maxBytes / (1024 * 1024)).toFixed(0)}MB.`
+      );
       return;
     }
 
@@ -111,66 +69,32 @@ export function UploadSingleXml({
   }, [file, onUpload, clear]);
 
   return (
-    <div style={{ maxWidth: 520 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h3 style={{ margin: 0 }}>{label}</h3>
+    <div>
+      <UploadFiles
+        id={id}
+        disable={disable}
+        schemaError={schemaError}
+        title={label}
+        size={size}
+        fileTypes=".xml"
+        multiple={false}
+        onFilesReady={handleFilesReady}
+        // UploadFiles expects (files:any)=>void and uses false to mean "valid"
+        onValidateFile={() => undefined}
+      />
+
+      {error ? (
+        <div className="flex items-center mr-auto text-sm text-error-message-red">
+          {error}
+        </div>
+      ) : null}
+
+      <div className="mt-3 flex gap-2">
         {file ? (
           <button type="button" onClick={clear} disabled={isUploading}>
             Remove
           </button>
         ) : null}
-      </div>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        multiple={false}
-        onChange={onInputChange}
-        style={{ display: "none" }}
-      />
-
-      <div
-        onClick={openFileDialog}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={onDrop}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " " ? openFileDialog() : null)}
-        style={{
-          marginTop: 12,
-          padding: 16,
-          border: "2px dashed #999",
-          borderRadius: 10,
-          cursor: "pointer",
-          background: isDragging ? "#f3f6ff" : "#fff",
-        }}
-      >
-        {!file ? (
-          <div>
-            <div style={{ fontWeight: 600 }}>Drag & drop a single .xml file here</div>
-            <div style={{ color: "#666", marginTop: 4 }}>or click to browse</div>
-          </div>
-        ) : (
-          <div>
-            <div style={{ fontWeight: 600 }} title={file.name}>
-              {file.name}
-            </div>
-            <div style={{ color: "#666", marginTop: 4 }}>{(file.size / 1024).toFixed(1)} KB</div>
-          </div>
-        )}
-      </div>
-
-      {error ? <div style={{ marginTop: 10, color: "#b00020" }}>{error}</div> : null}
-
-      <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
-        <button type="button" onClick={openFileDialog} disabled={isUploading}>
-          Choose XML
-        </button>
         <button type="button" onClick={upload} disabled={!file || isUploading}>
           {isUploading ? "Uploading..." : "Upload"}
         </button>
